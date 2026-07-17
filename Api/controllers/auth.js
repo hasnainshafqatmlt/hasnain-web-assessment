@@ -119,6 +119,9 @@ exports.logout = async (req, res, next) => {
 
 exports.forgotPassword = async ({ body: { email } }, res, next) => {
   try {
+    const user = await mockDB.findUserByEmail(String(email).toLowerCase());
+    if (!user) return next(NotFound());
+
     console.log(`[MOCK] Forgot password for: ${email}`);
     return next(SendData());
   } catch (err) {
@@ -128,6 +131,9 @@ exports.forgotPassword = async ({ body: { email } }, res, next) => {
 
 exports.restoreUser = async ({ body: { email } }, res, next) => {
   try {
+    const user = await mockDB.findUserByEmail(String(email).toLowerCase());
+    if (user) return next(NotFound()); // User is not deleted
+
     console.log(`[MOCK] Restore user: ${email}`);
     return next(SendData());
   } catch (err) {

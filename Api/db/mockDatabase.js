@@ -47,10 +47,10 @@ const sortTransactions = (list, sorter = '-date') => {
 const mockDB = {
   findUserByEmail: async email => {
     const normalized = String(email).toLowerCase();
-    return mockData.users.find(u => u.email.toLowerCase() === normalized);
+    return mockData.users.find(u => u.email.toLowerCase() === normalized && !u.deleted);
   },
 
-  findUserById: async id => mockData.users.find(u => u._id === id),
+  findUserById: async id => mockData.users.find(u => u._id === id && !u.deleted),
 
   findTransactions: async (query = {}, options = {}) => {
     let results = [...mockData.transactions];

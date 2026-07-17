@@ -8,7 +8,11 @@ const connect = async () => {
   // an active connection with different connection strings
   await mongoose.disconnect();
 
-  const mongoServer = await MongoMemoryServer.create();
+  const mongoServer = await MongoMemoryServer.create({
+    binary: {
+      systemBinary: '/opt/homebrew/bin/mongod'
+    }
+  });
   const mongoUri = mongoServer.getUri();
   global.__MONGOINSTANCE = mongoServer;
   return mongoose

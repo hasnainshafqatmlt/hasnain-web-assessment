@@ -47,7 +47,43 @@ const clearTokens = res => {
   res.clearCookie('logged', { sameSite: 'lax', path: '/' });
 };
 
+// Helper function for tests - generate auth token without response object
+const genereteAuthToken = user => {
+  const userId = user._id || user.id;
+  const userEmail = user.email;
+  const userRole = user.role || 'user';
+  const userName = user.name || 'Test User';
+
+  const payload = {
+    id: userId,
+    email: userEmail,
+    name: userName,
+    role: userRole
+  };
+
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '24h' });
+
+  return { token: accessToken };
+};
+
+// Helper function for tests - generate change password token
+const genereteChangePasswordToken = user => {
+  const userId = user._id || user.id;
+  const userEmail = user.email;
+
+  const payload = {
+    id: userId,
+    email: userEmail
+  };
+
+  const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+
+  return { token };
+};
+
 module.exports = {
   generateToken,
-  clearTokens
+  clearTokens,
+  genereteAuthToken,
+  genereteChangePasswordToken
 };

@@ -12,10 +12,7 @@ const { validator } = require('../middlewares/validator');
 
 const router = express.Router();
 
-router
-  .route('/')
-  .get(isAuth, controller.get)
-  .post(validator('createTransaction'), isAuth, controller.create);
+router.route('/').get(isAuth, controller.get).post(validator('createTransaction'), isAuth, controller.create);
 
 router.route('/summary').get(isAuth, controller.getSummary);
 
