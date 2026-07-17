@@ -1,54 +1,81 @@
 const jwt = require('jsonwebtoken');
+const { Unauthorized, MissingRefreshToken, UnauthorizedRefreshToken } = require('../helpers/response');
 
-// Mock user for testing
-const mockUser = {
-  id: '1',
-  email: 'test@meblabs.com',
-  name: 'Test User',
-  role: 'user'
-};
+const getTokenFromRequest = (req, cookieName, headerFallback = false) => {
+  let token = req.cookies?.[cookieName];
 
-const isAuth = (req, res, next) => {
-  // Check for token in cookies or Authorization header
-  let token = req.cookies?.accessToken;
-  
-  if (!token) {
+  if (!token && headerFallback) {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.substring(7);
     }
   }
-  
+
+  return token;
+};
+
+const attachUser = (req, res, decoded) => {
+  const user = {
+    id: decoded.id,
+    _id: decoded.id,
+    email: decoded.email,
+    name: decoded.name || 'Test User',
+    role: decoded.role || 'user'
+  };
+  req.user = user;
+  res.locals.user = user;
+  return user;
+};
+
+const isAuth = (req, res, next) => {
+  const token = getTokenFromRequest(req, 'accessToken', true);
+
   if (!token) {
-    req.user = mockUser; // For testing, just use mock user
-    return next();
+    return next(Unauthorized());
   }
-  
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-    req.user = decoded;
-    next();
+    attachUser(req, res, decoded);
+    return next();
   } catch (error) {
-    // If token is invalid, still use mock user for testing
-    req.user = mockUser;
-    next();
+    return next(Unauthorized());
   }
 };
 
 const isAuthRt = (req, res, next) => {
-  req.user = mockUser;
-  next();
+  const token = getTokenFromRequest(req, 'refreshToken');
+
+  if (!token) {
+    return next(MissingRefreshToken());
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    attachUser(req, res, decoded);
+    return next();
+  } catch (error) {
+    return next(UnauthorizedRefreshToken());
+  }
 };
 
 const isAuthRtlogout = (req, res, next) => {
-  req.user = mockUser;
-  next();
+  // Logout should always succeed so cookies can be cleared
+  const token = getTokenFromRequest(req, 'refreshToken') || getTokenFromRequest(req, 'accessToken', true);
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+      attachUser(req, res, decoded);
+    } catch (error) {
+      // ignore invalid tokens on logout
+    }
+  }
+
+  return next();
 };
 
-const isAuthChangePassword = (req, res, next) => {
-  req.user = mockUser;
-  next();
-};
+const isAuthChangePassword = (req, res, next) => next();
 
 module.exports = {
   isAuth,

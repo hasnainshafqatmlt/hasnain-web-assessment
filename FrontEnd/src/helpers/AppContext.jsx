@@ -1,8 +1,7 @@
 import { useState, createContext, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome } from '@fortawesome/free-solid-svg-icons';
+import { faWallet } from '@fortawesome/free-solid-svg-icons';
 
 import useLocalStorage from '../hooks/core/useLocalStorage';
 
@@ -17,8 +16,6 @@ const MacroMenu = {
 };
 
 export const AppProvider = props => {
-  const { t } = useTranslation();
-
   const [isMobile, setIsMobile] = useState(false);
   const [darkMode, setDarkMode] = useLocalStorage('darkMode', false);
 
@@ -31,10 +28,10 @@ export const AppProvider = props => {
   const menuItems = {
     [MacroMenu.Home]: [
       {
-        label: <Link to="/">{t('common.home')}</Link>,
+        label: <Link to="/">Diary</Link>,
         key: 'home',
-        icon: <FontAwesomeIcon icon={faHome} />,
-        authorizedRoles: ['admin', 'designer', 'manufacturer', 'owner']
+        icon: <FontAwesomeIcon icon={faWallet} />,
+        authorizedRoles: ['admin', 'designer', 'manufacturer', 'owner', 'user', 'superuser']
       }
     ]
   };

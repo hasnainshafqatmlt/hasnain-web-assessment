@@ -64,8 +64,18 @@ export const AuthContextProvider = ({ children }) => {
     const prevRequest = error?.config;
     const statusCode = error?.response?.status;
     const customErrorCode = error?.response?.data?.error;
+    const requestUrl = prevRequest?.url || '';
 
     if (customErrorCode === 306 || customErrorCode === 307 || customErrorCode === 308) return signOut();
+
+    // Do not try to refresh when the session check itself fails
+    if (
+      requestUrl.includes('/auth/check') ||
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/logout')
+    ) {
+      return Promise.reject(error);
+    }
 
     if (statusCode === 401 && !prevRequest?.__isRetryRequest) return retryRT(prevRequest, error);
 
@@ -77,12 +87,15 @@ export const AuthContextProvider = ({ children }) => {
   const checkUserStatus = () =>
     Api.get('/auth/check')
       .then(res => {
-        if (res.data) {
+        if (res?.data?.id || res?.data?.email) {
           setLogged(res.data);
           setAuthStatus(AuthStatus.SignedIn);
+          return;
         }
+        setAuthStatus(AuthStatus.SignedOut);
       })
       .catch(() => {
+        setLogged({});
         setAuthStatus(AuthStatus.SignedOut);
       });
 
